@@ -99,7 +99,14 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
+    
+    type_token_ratio = 0.0
+    tokens = nltk.word_tokenize(text)
+    num_tokens = len(tokens)
+    num_unique_tokens = len(set(tokens))
+    if num_tokens:
+        type_token_ratio = num_unique_tokens/num_tokens
+    return type_token_ratio
 
 
 def get_ttrs(df):
@@ -146,9 +153,10 @@ if __name__ == "__main__":
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     # print(df.head())
     nltk.download("cmudict")
+    nltk.download('punkt')
     parse(df)
     print(df.head())
-    # print(get_ttrs(df))
+    print(get_ttrs(df))
     # print(get_fks(df))
     # print(df.head())
 
