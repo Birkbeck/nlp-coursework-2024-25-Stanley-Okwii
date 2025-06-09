@@ -6,8 +6,15 @@ import nltk
 import spacy
 from pathlib import Path
 
+# Download the spaCy English pipeline if not already present
+english_pipeline = "en_core_web_sm"
+spacy_info = spacy.info()
 
-nlp = spacy.load("en_core_web_sm")
+if(english_pipeline not in spacy_info.get('pipelines', {})):
+    print("Downloading ENG pipeline")
+    spacy.cli.download(english_pipeline)
+
+nlp = spacy.load(english_pipeline)
 nlp.max_length = 2000000
 
 
@@ -96,9 +103,9 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    #path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
-    #df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    path = Path.cwd() #/ "p1-texts" / "novels"
+    print(path)
+    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     #print(df.head())
     #nltk.download("cmudict")
     #parse(df)
