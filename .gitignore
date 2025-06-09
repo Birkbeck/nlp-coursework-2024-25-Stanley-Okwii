@@ -1,6 +1,7 @@
 # ignore the texts to avoid large github upload. PN
 p1-texts/novels/
 p2-texts/
+pickles/
 
 
 # Byte-compiled / optimized / DLL files
