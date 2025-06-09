@@ -33,7 +33,14 @@ def fk_level(text, d):
     Returns:
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
-    pass
+    sentence_count = len(nltk.sent_tokenize(text))
+    words = nltk.word_tokenize(text)
+    word_count = len(words)
+    syllable_count = sum(count_syl(word, d) for word in words if word.isalpha())
+
+    if not sentence_count and not word_count:
+        return 0.0
+    return (0.39 * (word_count / sentence_count) + 11.8 * (syllable_count / word_count) - 15.59)
 
 
 def count_syl(word, d):
