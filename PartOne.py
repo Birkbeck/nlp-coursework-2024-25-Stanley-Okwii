@@ -81,7 +81,8 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
-    os.makedirs(store_path, exist_ok=True) # Does not error if directory exists
+    # Create the directory if it doesn't exist
+    Path(store_path).mkdir(parents=True, exist_ok=True)
     pickle = Path(store_path / out_name)
     if not pickle.exists():
         try:
@@ -89,9 +90,10 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
         except Exception as exc:
             raise exc
         df.to_pickle(store_path / out_name)
-    # else:
-    #     df = pd.read_pickle(store_path / out_name)
-    #     df['parsed_docs'] = df['parsed_docs'].apply(lambda x: spacy.tokens.Doc(x.vocab).from_bytes(x))
+    else:
+        print("Using pickled df...")
+        df = pd.read_pickle(store_path / out_name)
+        df['parsed_docs'] = df['parsed_docs'].apply(lambda x: spacy.tokens.Doc(nlp.vocab).from_bytes(x))
     return df
 
 
@@ -142,14 +144,18 @@ if __name__ == "__main__":
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    print(df.head())
+    # print(df.head())
     nltk.download("cmudict")
     parse(df)
     print(df.head())
-    #print(get_ttrs(df))
-    #print(get_fks(df))
-    # df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
+    # print(get_ttrs(df))
+    # print(get_fks(df))
     # print(df.head())
+
+    # df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle") # Not need since parse method reads and parses the pickle
+    # print(df.head())
+
+
     # print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
