@@ -98,19 +98,24 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 
 def nltk_ttr(text):
-    """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    
+    """
+    Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize.
+    """
     type_token_ratio = 0.0
     tokens = nltk.word_tokenize(text)
-    num_tokens = len(tokens)
-    num_unique_tokens = len(set(tokens))
+    word_tokens = [token.lower() for token in tokens if token.isalpha()] # Filter out punctuations and ignore case
+    num_tokens = len(word_tokens)
+    num_unique_tokens = len(set(word_tokens))
+
     if num_tokens:
         type_token_ratio = num_unique_tokens/num_tokens
     return type_token_ratio
 
 
 def get_ttrs(df):
-    """helper function to add ttr to a dataframe"""
+    """
+    helper function to add ttr to a dataframe
+    """
     results = {}
     for i, row in df.iterrows():
         results[row["title"]] = nltk_ttr(row["text"])
