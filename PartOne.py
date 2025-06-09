@@ -2,16 +2,20 @@
 
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
+import os
+import glob
+from pathlib import Path
+
 import nltk
 import spacy
-from pathlib import Path
+import pandas as pd
 
 # Download the spaCy English pipeline if not already present
 english_pipeline = "en_core_web_sm"
 spacy_info = spacy.info()
 
 if(english_pipeline not in spacy_info.get('pipelines', {})):
-    print("Downloading ENG pipeline")
+    print("Downloading en_core_web_sm pipeline")
     spacy.cli.download(english_pipeline)
 
 nlp = spacy.load(english_pipeline)
@@ -50,7 +54,27 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    pass
+    novels = []
+    # Use glob to find all .txt files in the specified directory
+    text_files = glob.glob(os.path.join(path, '*.txt'))
+    for f in text_files:
+        with open(f, 'r') as file:
+            filename = f.split("novels/")[1]
+            base_name = filename.replace('.txt', '')
+            parts = base_name.split('-')
+            title = parts[0].replace('_', ' ')
+            author = parts[1]
+            year = parts[2]
+            content = file.read()
+
+            novel_info = {
+                "text": content,
+                "title": title,
+                "author": author,
+                "year": year,
+            }
+            novels.append(novel_info)
+    return pd.DataFrame(novels)
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
@@ -103,10 +127,10 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    path = Path.cwd() #/ "p1-texts" / "novels"
+    path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
     #nltk.download("cmudict")
     #parse(df)
     #print(df.head())
