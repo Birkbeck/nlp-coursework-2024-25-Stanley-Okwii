@@ -74,7 +74,9 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
                 "year": year,
             }
             novels.append(novel_info)
-    return pd.DataFrame(novels)
+    df = pd.DataFrame(novels)
+    df.sort_values(by='year').reset_index(drop=True, inplace=True)
+    return df
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
