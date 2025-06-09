@@ -47,7 +47,15 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
-    pass
+    word = word.lower()
+    count = 0
+    if word in d:
+        count = len([pr for pr in d[word][0] if pr[-1].isdigit()]) # count vowels in the word's first pronunciation
+    else:
+        vowels = set("aeiouy") # y is sometimes considered a vowel especially in syllable estimation (https://www.grammarly.com/blog/grammar/vowels/)
+        count = sum(curr in vowels and prev not in vowels for prev, curr in zip(' ' + word, word))
+    return count
+
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
@@ -123,7 +131,9 @@ def get_ttrs(df):
 
 
 def get_fks(df):
-    """helper function to add fk scores to a dataframe"""
+    """
+    helper function to add fk scores to a dataframe
+    """
     results = {}
     cmudict = nltk.corpus.cmudict.dict()
     for i, row in df.iterrows():
@@ -160,9 +170,9 @@ if __name__ == "__main__":
     nltk.download("cmudict")
     nltk.download('punkt')
     parse(df)
-    print(df.head())
-    print(get_ttrs(df))
-    # print(get_fks(df))
+    # print(df.head())
+    # print(get_ttrs(df))
+    print(get_fks(df))
     # print(df.head())
 
     # df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle") # Not need since parse method reads and parses the pickle
