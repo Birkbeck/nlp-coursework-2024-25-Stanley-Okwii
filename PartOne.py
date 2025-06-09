@@ -3,7 +3,6 @@
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
 import os
-import glob
 from pathlib import Path
 
 import nltk
@@ -55,11 +54,11 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
     novels = []
-    # Use glob to find all .txt files in the specified directory
-    text_files = glob.glob(os.path.join(path, '*.txt'))
+    # Find all .txt files in the novels directory
+    text_files = Path.glob(path, '*.txt')
     for f in text_files:
         with open(f, 'r') as file:
-            filename = f.split("novels/")[1]
+            filename = file.name.split("novels/")[1]
             base_name = filename.replace('.txt', '')
             parts = base_name.split('-')
             title = parts[0].replace('_', ' ')
@@ -82,7 +81,18 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
-    pass
+    os.makedirs(store_path, exist_ok=True) # Does not error if directory exists
+    pickle = Path(store_path / out_name)
+    if not pickle.exists():
+        try:
+            df['parsed_docs'] = df['text'].apply(lambda x: nlp(x).to_bytes())
+        except Exception as exc:
+            raise exc
+        df.to_pickle(store_path / out_name)
+    # else:
+    #     df = pd.read_pickle(store_path / out_name)
+    #     df['parsed_docs'] = df['parsed_docs'].apply(lambda x: spacy.tokens.Doc(x.vocab).from_bytes(x))
+    return df
 
 
 def nltk_ttr(text):
@@ -133,12 +143,13 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
-    #nltk.download("cmudict")
-    #parse(df)
-    #print(df.head())
+    nltk.download("cmudict")
+    parse(df)
+    print(df.head())
     #print(get_ttrs(df))
     #print(get_fks(df))
-    #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    # df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
+    # print(df.head())
     # print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
