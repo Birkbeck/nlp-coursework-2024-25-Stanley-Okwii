@@ -3,6 +3,7 @@
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
 from pathlib import Path
+from collections import Counter
 import nltk
 import spacy
 import pandas as pd
@@ -155,11 +156,18 @@ def subjects_by_verb_count(doc, verb):
     pass
 
 
-
-def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    pass
-
+def adjective_counts(df):
+    """
+    Extracts the 10 most common adjectives in each parsed document.
+    Returns a dictionary: {title: [(adj, freq), ...]}.
+    """
+    results = {}
+    for _, row in df.iterrows():
+        doc = row["parsed"]
+        adjectives = [token.text.lower() for token in doc if token.pos_ == "ADJ"]
+        top_adjectives = Counter(adjectives).most_common(10)
+        results[row["title"]] = top_adjectives
+    return results
 
 
 if __name__ == "__main__":
@@ -177,7 +185,7 @@ if __name__ == "__main__":
     print(get_ttrs(df), "\n\n")
     print(get_fks(df), "\n\n")
 
-    # print(adjective_counts(df))
+    print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
         print(row["title"])
