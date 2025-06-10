@@ -2,9 +2,7 @@
 
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
-import os
 from pathlib import Path
-
 import nltk
 import spacy
 import pandas as pd
@@ -64,7 +62,6 @@ def count_syl(word, d):
     return count
 
 
-
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
@@ -94,22 +91,22 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
-    """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
-    the resulting  DataFrame to a pickle file"""
-    # Create the directory if it doesn't exist
+    """
+    Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
+    the resulting DataFrame to a pickle file
+    """
+    # Create the pickles folder if it doesn't exist
     Path(store_path).mkdir(parents=True, exist_ok=True)
     pickle = Path(store_path / out_name)
     if not pickle.exists():
-        try:
-            df['parsed_docs'] = df['text'].apply(lambda x: nlp(x).to_bytes())
-        except Exception as exc:
-            raise exc
-        df.to_pickle(store_path / out_name)
+        df['parsed'] = df['text'].apply(lambda x: nlp(x))
+        print("Pickle-ing dataframe...\n")
+        pd.to_pickle(df, store_path / out_name)
+        return df
     else:
-        print("Using pickled df...")
-        df = pd.read_pickle(store_path / out_name)
-        df['parsed_docs'] = df['parsed_docs'].apply(lambda x: spacy.tokens.Doc(nlp.vocab).from_bytes(x))
-    return df
+        print("Using pickled dataframe...\n")
+        _df = pd.read_pickle(store_path / out_name)
+        return _df
 
 
 def nltk_ttr(text):
@@ -153,7 +150,6 @@ def subjects_by_verb_pmi(doc, target_verb):
     pass
 
 
-
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     pass
@@ -172,19 +168,14 @@ if __name__ == "__main__":
     """
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    # print(df.head())
+    df = read_novels(path)
+    print(df.head(), "\n\n")
     nltk.download("cmudict")
     nltk.download('punkt')
-    parse(df)
-    # print(df.head())
-    # print(get_ttrs(df))
-    print(get_fks(df))
-    # print(df.head())
-
-    # df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle") # Not need since parse method reads and parses the pickle
-    # print(df.head())
-
+    df = parse(df)
+    print(df.head(), "\n\n")
+    print(get_ttrs(df), "\n\n")
+    print(get_fks(df), "\n\n")
 
     # print(adjective_counts(df))
     """ 
