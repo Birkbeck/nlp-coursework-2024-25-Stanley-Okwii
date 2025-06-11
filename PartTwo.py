@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, f1_score
 
 
 def create_hansard_df():
@@ -31,7 +33,6 @@ if __name__ == "__main__":
     df = create_hansard_df()
     print(f"df.shape:  {df.shape} \n")
 
-
     # (b) Vectorise the speeches with TfidfVectorizer
     random_seed = 26
     n_features = 3000
@@ -50,4 +51,17 @@ if __name__ == "__main__":
     )
     print(f"Train dataset shape: {X_train.shape} \n")
     print(f"Test dataset shape: {X_test.shape} \n")  
+
+    # (c) Train RandomForest and SVM with linear kernel classifiers
+    ## Random Forest Classifier
+    print("Training Random Forest Classifier...")
+    random_f_model = RandomForestClassifier(n_estimators=300, random_state=random_seed)
+    random_f_model.fit(X_train, y_train)
+    random_f_preds = random_f_model.predict(X_test)
+
+    print("F1 Score:", f1_score(y_test, random_f_preds, average="macro"))
+    print("Classification Report:")
+    print(
+        classification_report(y_test, random_f_preds, zero_division=0)
+    )  # Ignore division by zero warnings
 
