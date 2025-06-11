@@ -8,6 +8,10 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, f1_score
 
 
+random_seed = 26
+n_features = 3000
+
+
 def create_hansard_df():
     """
     Read hansard40000 data and subsets and renames dataframe
@@ -29,50 +33,50 @@ def create_hansard_df():
 
     return df
 
-if __name__ == "__main__":
-    # (a) Read hansard40000 data and subsets and renames dataframe
-    df = create_hansard_df()
-    print(f"df.shape:  {df.shape} \n")
-
-    # (b) Vectorise the speeches with TfidfVectorizer
-    random_seed = 26
-    n_features = 3000
-    vectorizer = TfidfVectorizer(
-        max_features=n_features, stop_words="english"
-    )
+def vectorize_and_split_dataset(vectorizer, df):
     X = vectorizer.fit_transform(df['speech'])
     y = df['party']
 
     # split dataset into train(80%) and test(20%)
-    X_train, X_test, y_train, y_test = train_test_split(
+    return train_test_split(
         X, y,
         test_size=0.2,
         stratify=y,
         random_state=random_seed
     )
-    print(f"Train dataset shape: {X_train.shape} \n")
-    print(f"Test dataset shape: {X_test.shape} \n")  
 
-
-    # (c) Train RandomForest and SVM with linear kernel classifiers
-    ## Random Forest Classifier
-    print("Training Random Forest Classifier...")
-    rf = RandomForestClassifier(n_estimators=300, random_state=random_seed)
-    rf.fit(X_train, y_train)
-    rf_preds = rf.predict(X_test)
-
-    print("F1 Score:", f1_score(y_test, rf_preds, average="macro"))
+def report_evaluation_metrics(y_test, predictions):
+    """
+    """
+    print("F1 Score:", f1_score(y_test, predictions, average="macro"))
     print("Classification Report:")
     print(
-        classification_report(y_test, rf_preds, zero_division=0)
+        classification_report(y_test, predictions, zero_division=0)
     )  # Ignore division by zero warnings
+
+def train_and_evaluate_model(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    model_predictions = model.predict(X_test)
+    report_evaluation_metrics(y_test, model_predictions)
+
+
+if __name__ == "__main__":
+    # (a) Read hansard40000 data and subsets and renames dataframe
+    df = create_hansard_df()
+    print(f"df.shape:  {df.shape} \n")
+
+    # (b) Vectorize the speeches with TfidfVectorizer
+    vectorizer = TfidfVectorizer(
+        max_features=n_features, stop_words="english"
+    )
+    X_train, X_test, y_train, y_test = vectorize_and_split_dataset(vectorizer, df)
+
+    # (c) Train RandomForest and SVM with linear kernel classifiers
+    print("Training Random Forest Classifier...")
+    rf = RandomForestClassifier(n_estimators=300, random_state=random_seed)
+    train_and_evaluate_model(rf, X_train, X_test, y_train, y_test)
 
     # SVM Classifier (Linear Kernel)
     print("\nTraining SVM (Linear Kernel)...")
     svm = SVC(kernel="linear", random_state=random_seed)
-    svm.fit(X_train, y_train)
-    svm_preds = svm.predict(X_test)
-
-    print("F1 Score:", f1_score(y_test, svm_preds, average="macro"))
-    print("Classification Report:")
-    print(classification_report(y_test, svm_preds))
+    train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)
