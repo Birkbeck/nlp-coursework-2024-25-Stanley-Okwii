@@ -1,7 +1,3 @@
-#Re-assessment template 2025
-
-# Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
-
 from pathlib import Path
 from collections import Counter
 import nltk
@@ -116,7 +112,7 @@ def nltk_ttr(text):
     """
     type_token_ratio = 0.0
     tokens = nltk.word_tokenize(text)
-    word_tokens = [token.lower() for token in tokens if token.isalpha()] # Filter out punctuations and ignore case
+    word_tokens = [token.lower() for token in tokens if not token.isalpha()] # filter out punctuations and ignore case
     num_tokens = len(word_tokens)
     num_unique_tokens = len(set(word_tokens))
 
@@ -130,7 +126,7 @@ def get_ttrs(df):
     helper function to add ttr to a dataframe
     """
     results = {}
-    for i, row in df.iterrows():
+    for _, row in df.iterrows():
         results[row["title"]] = nltk_ttr(row["text"])
     return results
 
@@ -141,7 +137,7 @@ def get_fks(df):
     """
     results = {}
     cmudict = nltk.corpus.cmudict.dict()
-    for i, row in df.iterrows():
+    for _, row in df.iterrows():
         results[row["title"]] = round(fk_level(row["text"], cmudict), 4)
     return results
 
@@ -152,8 +148,18 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 
 def subjects_by_verb_count(doc, verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
+    """
+    Extracts the most common subjects of a given verb in a parsed document.
+    Returns a list.
+    """
+    subjects = []
+    for token in doc:
+        if token.lemma_ == verb and token.pos_ == "VERB":
+            # Find subject dependencies (nsubj and nsubjpass)
+            for child in token.children:
+                if child.dep_ in ("nsubj", "nsubjpass"):
+                    subjects.append(child.text.lower())
+    return [subject for (subject,_) in Counter(subjects).most_common(10)]
 
 
 def adjective_counts(df):
@@ -168,6 +174,15 @@ def adjective_counts(df):
         top_adjectives = Counter(adjectives).most_common(10)
         results[row["title"]] = top_adjectives
     return results
+
+
+def common_syntactic_objects(doc):
+    """
+    Find the ten most common syntactic objects overall in the text
+    """
+    dependencies = Counter([token.dep_ for token in doc])
+    top_dependencies = [dep.lower() for (dep,_) in dependencies.most_common(10)]
+    return top_dependencies
 
 
 if __name__ == "__main__":
@@ -186,15 +201,22 @@ if __name__ == "__main__":
     print(get_fks(df), "\n\n")
 
     print(adjective_counts(df))
-    """ 
-    for i, row in df.iterrows():
-        print(row["title"])
-        print(subjects_by_verb_count(row["parsed"], "hear"))
-        print("\n")
 
-    for i, row in df.iterrows():
-        print(row["title"])
-        print(subjects_by_verb_pmi(row["parsed"], "hear"))
-        print("\n")
-    """
+    # The title of each novel and a list of the ten most common syntactic objects overall in the text.
+    # for i, row in df.iterrows():
+    #     print(row["title"], "\n")
+    #     print(common_syntactic_objects(row["parsed"]))
+    #     print("\n")
+
+    # # The title of each novel and a list of the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their frequency.
+    # for i, row in df.iterrows():
+    #     print(row["title"], "\n")
+    #     print(subjects_by_verb_count(row["parsed"], "hear"))
+    #     print("\n")
+    
+    #  the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their Pointwise Mutual Information.
+    # for _, row in df.iterrows():
+    #     print(row["title"])
+    #     print(subjects_by_verb_pmi(row["parsed"], "hear"))
+    #     print("\n")
 
