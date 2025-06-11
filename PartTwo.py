@@ -80,3 +80,19 @@ if __name__ == "__main__":
     print("\nTraining SVM (Linear Kernel)...")
     svm = SVC(kernel="linear", random_state=random_seed)
     train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)
+
+
+    # (d) Tfidfvectorizer with unigrams
+    ngram_vectorizer = TfidfVectorizer(
+        max_features=n_features, stop_words="english", ngram_range=(1, 3)
+    )
+    X_train, X_test, y_train, y_test = vectorize_and_split_dataset(ngram_vectorizer, df)
+    print("Training Random Forest Classifier with ngram vectorizer...")
+    rf = RandomForestClassifier(n_estimators=300, random_state=random_seed)
+    train_and_evaluate_model(rf, X_train, X_test, y_train, y_test)
+
+    # SVM Classifier (Linear Kernel)
+    print("\nTraining SVM (Linear Kernel) with ngram vectorizer...")
+    svm = SVC(kernel="linear", random_state=random_seed)
+    train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)
+
