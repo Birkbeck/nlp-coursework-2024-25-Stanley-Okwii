@@ -1,1 +1,23 @@
 Answers to the text questions go here.
+PART ONE:
+(d):
+
+
+PART TWO:
+(f): `super_tokenizer` function and its performance
+
+This function uses a regular expression to filter out special characters in words or tenses,
+such as punctuation, as these do not help with text prediction. 
+The text is converted to lower case for consistency and then tokenized using `word_tokenize` from NLTK,
+which splits texts into separate words.
+
+WordS longer than two characters and are not part of the stop words are removed.Morphological affixes 
+are removed from remaining words too, leaving only the stem word. For instance, a word like 'running' becomes 'run'.
+
+With the stem words (unigrams), bigrams and trigrams are computed using NLTK's ngrams function. The tokenizer returns
+a combined list of all unigrams, bigrams, and trigrams.
+
+While it is computationally intensive, this method achieves an F1 score of 0.659 for the SVM classifier,
+which is considerably better when compared to the RandomForestClassifier's F1 score of 0.486.
+`TfidfVectorizer` parameters like `ngram_range` and `sublinear_tf` enabled the outcome of this result.
+I also noticed an increase in f1 score in both classifiers when using the `super_tokenizer` function.
