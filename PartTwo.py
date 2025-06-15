@@ -19,6 +19,7 @@ n_features = 3000
 stop_words = stopwords.words('english')
 stemmer = PorterStemmer()
 
+
 def create_hansard_df():
     """
     Read hansard40000 data and subsets and renames dataframe
@@ -41,6 +42,15 @@ def create_hansard_df():
     return df
 
 def vectorize_and_split_dataset(vectorizer, df):
+    """
+    vectorizes speech text and splits the dataset into train and test portions.
+
+    args:
+        vectorizer: TfidfVectorizer instance
+        df: hansard dataframe
+    
+    returns: List containing train-test split of inputs
+    """
     X = vectorizer.fit_transform(df['speech'])
     y = df['party']
 
@@ -54,6 +64,12 @@ def vectorize_and_split_dataset(vectorizer, df):
 
 def report_evaluation_metrics(y_test, predictions):
     """
+    prints out evaluation metrics for a given
+
+    args:
+        y_test:
+        predictions:
+    returns: None
     """
     print("F1 Score:", f1_score(y_test, predictions, average="macro"))
     print("Classification Report:")
@@ -63,6 +79,12 @@ def report_evaluation_metrics(y_test, predictions):
 
 def train_and_evaluate_model(model, X_train, X_test, y_train, y_test):
     """
+    Fits the model, evaluates it against test data and prints the report
+
+    Args:
+        model, X_train, X_test, y_train, y_test
+
+    Returns: None
     """
     model.fit(X_train, y_train)
     model_predictions = model.predict(X_test)
@@ -70,13 +92,19 @@ def train_and_evaluate_model(model, X_train, X_test, y_train, y_test):
 
 def super_tokenizer(text):
     """
+    custom text tokenizer function
+
+    Args:
+        text: str
+    Returns
+        combined list of unigrams, bigrams and trigrams.
     """
-    text = re.sub(r'[^a-zA-Z\s]', '', text.lower()) # Ignore specials characters like punctuations
+    text = re.sub(r'[^a-zA-Z\s]', '', text.lower()) # Ignore specials characters like punctuations and make text case insensitive
     tokens = word_tokenize(text)
 
     unigrams = [stemmer.stem(word) for word in tokens if (len(word) > 2 and word not in stop_words)] # Ignore 2 character words and stop words
-    bigrams = ['_'.join(gram) for gram in ngrams(unigrams, 2)]
-    trigrams = ['_'.join(gram) for gram in ngrams(unigrams, 3)]
+    bigrams = [' '.join(gram) for gram in ngrams(unigrams, 2)]
+    trigrams = [' '.join(gram) for gram in ngrams(unigrams, 3)]
 
     result = list(chain(unigrams, bigrams, trigrams))
     return result
@@ -121,11 +149,10 @@ if __name__ == "__main__":
     train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)
 
 
-    # (e) Classifiers using Tfidfvectorizer with custom tokenizer
+    # # (e) Classifiers using Tfidfvectorizer with custom tokenizer
     custom_vectorizer = TfidfVectorizer(
         tokenizer=super_tokenizer,
         max_features=n_features,
-        ngram_range=(1, 3),
         sublinear_tf=True,
         token_pattern=None,  # disable default regex warning
     )
@@ -134,7 +161,7 @@ if __name__ == "__main__":
     rf = RandomForestClassifier(n_estimators=300, random_state=random_seed)
     train_and_evaluate_model(rf, X_train, X_test, y_train, y_test)
 
-    # SVM Classifier (Linear Kernel)
+    # SVM Classifier (Linear Kernel) - Best performing classifier
     print("\nFit SVM (Linear Kernel) with super tokenizer...")
     svm = SVC(kernel="linear", random_state=random_seed)
     train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)

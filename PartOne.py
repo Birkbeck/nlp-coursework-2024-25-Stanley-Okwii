@@ -147,7 +147,7 @@ def get_fks(df):
 def subjects_by_verb_pmi(doc, target_verb):
     """
     Returns a list of the ten most common syntactic subjects target_verb in the text,
-    ordered by their Pointwise Mutual Information(PMI) scores.
+    ordered by their Pointwise Mutual Information (PMI) scores.
     """
     tokens = [token.lemma_.lower() for token in doc if token.is_alpha and not token.is_stop]
     subjects = set() # subjects that appear with target_verb

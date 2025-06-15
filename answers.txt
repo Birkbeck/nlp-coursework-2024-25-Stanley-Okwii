@@ -13,4 +13,4 @@ Words longer than two characters and are not part of the stop words are removed.
 With the stem words (unigrams), bigrams and trigrams are computed using NLTK's ngrams function. The tokenizer returns
 a combined list of all unigrams, bigrams, and trigrams.
 
-While it is computationally intensive, this method achieves an F1 score of 0.659 for the SVM classifier,which is considerably better when compared to the RandomForestClassifier's F1 score of 0.486. `TfidfVectorizer` parameters like `ngram_range` and `sublinear_tf` enabled the outcome of this result. I also noticed an increase in f1 score in both classifiers when using the `super_tokenizer` function.
+While it is computationally intensive, this method achieves an F1 score of 0.642 for the SVM classifier,which is considerably better when compared to the RandomForestClassifier's F1 score of 0.486. `TfidfVectorizer` parameters like `ngram_range` and `sublinear_tf` enabled the outcome of this result. I also noticed an increase in f1 score in both classifiers when using the `super_tokenizer` function.
