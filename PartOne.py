@@ -1,8 +1,10 @@
 from pathlib import Path
 from collections import Counter
+
 import nltk
 import spacy
 import pandas as pd
+
 
 # Download the spaCy English pipeline if not already present
 english_pipeline = "en_core_web_sm"
@@ -143,8 +145,43 @@ def get_fks(df):
 
 
 def subjects_by_verb_pmi(doc, target_verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
+    """
+    Returns a list of the ten most common syntactic subjects target_verb in the text,
+    ordered by their Pointwise Mutual Information(PMI) scores.
+    """
+    tokens = [token.lemma_.lower() for token in doc if token.is_alpha and not token.is_stop]
+    subjects = set() # subjects that appear with target_verb
+    top_10_common_subjects = {}
+
+    for sent in doc.sents:
+        for token in sent:
+            if token.pos_ == "VERB" and token.lemma_ == target_verb: # match any tense of verb target_verb.
+                for child in token.children:
+                    if child.dep_ in ("nsubj", "nsubjpass") and child.pos_ in ("NOUN", "PROPN", "PRON"):
+                        subjects.add(child.text.lower())
+
+    bigram_finder = nltk.BigramCollocationFinder.from_words(tokens) # Finds all bigrams in the text.
+    pmi_scores = bigram_finder.score_ngrams(nltk.collocations.BigramAssocMeasures().pmi) # Returns bigrams scored by pmi in descending order
+
+    for (word1, word2), pmi_score in pmi_scores:
+        if word1 == target_verb:
+            subject = word2
+        elif word2 == target_verb:
+            subject = word1
+        else:
+            continue
+
+        if subject in subjects:
+            if subject in top_10_common_subjects:
+                # Because its possible to have 2 scores with reversed bigram order, compute their average
+                top_10_common_subjects[subject] = (top_10_common_subjects[subject] + pmi_score) / 2
+            else:
+                top_10_common_subjects[subject] = pmi_score
+
+        if len(top_10_common_subjects.keys()) >= 10:
+            break
+
+    return [{k:v} for k, v in top_10_common_subjects.items()]
 
 
 def subjects_by_verb_count(doc, verb):
@@ -203,20 +240,20 @@ if __name__ == "__main__":
     print(adjective_counts(df))
 
     # The title of each novel and a list of the ten most common syntactic objects overall in the text.
-    # for i, row in df.iterrows():
-    #     print(row["title"], "\n")
-    #     print(common_syntactic_objects(row["parsed"]))
-    #     print("\n")
+    for _, row in df.iterrows():
+        print(row["title"], "\n")
+        print(common_syntactic_objects(row["parsed"]))
+        print("\n")
 
     # # The title of each novel and a list of the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their frequency.
-    # for i, row in df.iterrows():
-    #     print(row["title"], "\n")
-    #     print(subjects_by_verb_count(row["parsed"], "hear"))
-    #     print("\n")
+    for _, row in df.iterrows():
+        print(row["title"], "\n")
+        print(subjects_by_verb_count(row["parsed"], "hear"))
+        print("\n")
     
     #  the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their Pointwise Mutual Information.
-    # for _, row in df.iterrows():
-    #     print(row["title"])
-    #     print(subjects_by_verb_pmi(row["parsed"], "hear"))
-    #     print("\n")
+    for _, row in df.iterrows():
+        print(row["title"])
+        print(subjects_by_verb_pmi(row["parsed"], "hear"))
+        print("\n")
 
