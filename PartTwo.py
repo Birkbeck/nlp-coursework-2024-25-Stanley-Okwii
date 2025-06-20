@@ -103,8 +103,8 @@ def super_tokenizer(text):
     tokens = word_tokenize(text)
 
     unigrams = [stemmer.stem(word) for word in tokens if (len(word) > 2 and word not in stop_words)] # Ignore 2 character words and stop words
-    bigrams = [' '.join(gram) for gram in ngrams(unigrams, 2)]
-    trigrams = [' '.join(gram) for gram in ngrams(unigrams, 3)]
+    bigrams = ['_'.join(gram) for gram in ngrams(unigrams, 2)]
+    trigrams = ['_'.join(gram) for gram in ngrams(unigrams, 3)]
 
     result = list(chain(unigrams, bigrams, trigrams))
     return result
