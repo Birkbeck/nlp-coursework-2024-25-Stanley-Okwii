@@ -149,7 +149,7 @@ if __name__ == "__main__":
     train_and_evaluate_model(svm, X_train, X_test, y_train, y_test)
 
 
-    # # (e) Classifiers using Tfidfvectorizer with custom tokenizer
+    #  (e) Classifiers using Tfidfvectorizer with custom tokenizer
     nltk.download('stopwords')
     stop_words = stopwords.words('english')
     custom_vectorizer = TfidfVectorizer(
