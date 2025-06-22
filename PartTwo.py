@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, f1_score
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.util import ngrams
@@ -16,7 +17,6 @@ from nltk.stem import PorterStemmer
 
 random_seed = 26
 n_features = 3000
-stop_words = stopwords.words('english')
 stemmer = PorterStemmer()
 
 
@@ -150,6 +150,8 @@ if __name__ == "__main__":
 
 
     # # (e) Classifiers using Tfidfvectorizer with custom tokenizer
+    nltk.download('stopwords')
+    stop_words = stopwords.words('english')
     custom_vectorizer = TfidfVectorizer(
         tokenizer=super_tokenizer,
         max_features=n_features,
