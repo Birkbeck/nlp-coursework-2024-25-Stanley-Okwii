@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from collections import Counter
 
@@ -144,71 +145,46 @@ def get_fks(df):
     return results
 
 
+def calculate_pmi_score(word, target_word, unigram_freq, bigram_freq):
+    """
+    Calculates pmi scores for each word and target_word pair using unigram and bigram frequencies.
+
+    Reference: https://stackoverflow.com/questions/22118350/python-sentiment-analysis-using-pointwise-mutual-information
+    """
+    try:
+        word_prob = unigram_freq[word] / float(sum(unigram_freq.values()))
+        target_word_prob = unigram_freq[target_word] / float(sum(unigram_freq.values()))
+        bigram_prob = bigram_freq[word] / float(sum(bigram_freq.values()))
+        return round(math.log(bigram_prob / float(word_prob*target_word_prob)), 3)
+    except Exception as exc:
+        return 0.0
+
+
 def subjects_by_verb_pmi(doc, target_verb):
     """
     Returns a list of the ten most common syntactic subjects target_verb in the text,
     ordered by their Pointwise Mutual Information (PMI) scores.
     """
     tokens = [token.lemma_.lower() for token in doc if token.is_alpha and not token.is_stop]
-    subjects = set() # subjects that appear with target_verb
-    top_10_common_subjects = {}
-    _l = []
+    unique_subjects = set()
+    subjects = []
 
     for sent in doc.sents:
         for token in sent:
-            if token.pos_ == "VERB" and token.lemma_ == target_verb: # match any tense of verb target_verb.
+            if token.pos_ == "VERB" and token.lemma_ == target_verb:
                 for child in token.children:
                     if child.dep_ in ("nsubj", "nsubjpass") and child.pos_ in ("NOUN", "PROPN", "PRON"):
-                        subjects.add(child.text.lower())
-                        _l.append(child.text.lower())
+                        unique_subjects.add(child.text.lower())
+                        subjects.append(child.text.lower())
                         break # one subject per sentence
 
-    # bigram_finder = nltk.BigramCollocationFinder.from_words(tokens) # Finds all bigrams in the text.
-    # pmi_scores = bigram_finder.score_ngrams(nltk.collocations.BigramAssocMeasures().pmi) # Returns bigrams scored by pmi in descending order
-
-
-
-    from collections import Counter
-
     unigram_freq = Counter(tokens)
-    bigram_freq = Counter(_l)
-    # print(bigram_freq)
+    bigram_freq = Counter(unique_subjects)
 
-    # for (word1, word2), pmi_score in pmi_scores:
-    #     if word1 == target_verb:
-    #         subject = word2
-    #     elif word2 == target_verb:
-    #         subject = word1
-    #     else:
-    #         continue
-
-    #     if subject in subjects:
-    #         if subject in top_10_common_subjects:
-    #             # Because its possible to have 2 scores with reversed bigram order, compute their average
-    #             top_10_common_subjects[subject] = (top_10_common_subjects[subject] + pmi_score) / 2
-    #         else:
-    #             top_10_common_subjects[subject] = pmi_score
-
-    #     if len(top_10_common_subjects.keys()) >= 10:
-    #         break
-    # return [{k:v} for k, v in top_10_common_subjects.items()]
-
-    #   https://stackoverflow.com/questions/22118350/python-sentiment-analysis-using-pointwise-mutual-information
-    import math
-
-    def pmi(word1, word2, unigram_freq, bigram_freq):
-        try:
-            prob_word1 = unigram_freq[word1] / float(sum(unigram_freq.values()))
-            prob_word2 = unigram_freq[word2] / float(sum(unigram_freq.values()))
-            prob_word1_word2 = bigram_freq[word1] / float(sum(bigram_freq.values()))
-            return math.log(prob_word1_word2/float(prob_word1*prob_word2),2)
-        except Exception as exc:
-            return 0
+    pmi_scores = [{subject: calculate_pmi_score(subject, target_verb, unigram_freq, bigram_freq)} for subject in subjects]
+    top_10 = sorted(pmi_scores, key=lambda x: next(iter(x.values())), reverse=True)[:10]
     
-    pmi_scores = [{subje: pmi(subje, target_verb, unigram_freq, bigram_freq)} for subje in subjects]
-    print('pmi scores',pmi_scores, '\n')
-    return []
-
+    return top_10
 
 
 def subjects_by_verb_count(doc, verb):
@@ -261,27 +237,26 @@ if __name__ == "__main__":
     nltk.download('punkt')
     nltk.download('punkt_tab')
     df = parse(df)
-    # print(df.head(), "\n\n")
-    # print(get_ttrs(df), "\n\n")
-    # print(get_fks(df), "\n\n")
+    print(df.head(), "\n\n")
+    print(get_ttrs(df), "\n\n")
+    print(get_fks(df), "\n\n")
 
-    # print(adjective_counts(df))
+    print(adjective_counts(df))
 
-    # # The title of each novel and a list of the ten most common syntactic objects overall in the text.
-    # for _, row in df.iterrows():
-    #     print(row["title"], "\n")
-    #     print(common_syntactic_objects(row["parsed"]))
-    #     print("\n")
+    # The title of each novel and a list of the ten most common syntactic objects overall in the text.
+    for _, row in df.iterrows():
+        print(row["title"], "\n")
+        print(common_syntactic_objects(row["parsed"]))
+        print("\n")
 
-    # # # The title of each novel and a list of the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their frequency.
-    # for _, row in df.iterrows():
-    #     print(row["title"], "\n")
-    #     print(subjects_by_verb_count(row["parsed"], "hear"))
-    #     print("\n")
+    # # The title of each novel and a list of the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their frequency.
+    for _, row in df.iterrows():
+        print(row["title"], "\n")
+        print(subjects_by_verb_count(row["parsed"], "hear"))
+        print("\n")
     
     #  the ten most common syntactic subjects of the verb ‘to hear’ (in any tense) in the text, ordered by their Pointwise Mutual Information.
     for _, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_pmi(row["parsed"], "hear"))
         print("\n")
-
